@@ -1,1 +1,11 @@
+V = '5.131'
+group_token = 'vk1.a.06p-f4G9y0-z_dKyg7vHQ2z9qIrbldrFzgDfa3DcAj-EEoIoHAP5rOR-RZti5bRZ73ZLJSMikfI2ogBH1P4ldIhscvoB35D4I3ad5zAswqgE5DBZJzEPrbFBFaQK1R1YRJ1SC2_WeeoyacTUtZLpPFR82aCePDUswOC37Ow8V3FZ0mh6tfhnBu7fyKGDhkca9hX2DTO4BMbbEGAdGkwmaw'
+user_token = "vk1.a.3NqNBS-wyFlvidppxbABSFZgDQYkS4sRByzc_TGDWVFoPUZeUJ3haNPWxdbGnIIGGMOaB4uqrMdopZExImJ45Zb_GyPcWNNaSO9xclSmt-KauIn3xqWVhVPQ1f5ZaSx9EZcIG5jjJPr1mAqOFMloEq_eVdD5-p4gmovZ_6eEO_LKgb_izPMtdK1xtquGjpH5"
 
+offset = 0 #сдвиг
+line = range(0, 1000) # последовательность для перебора найденных пользователей
+
+host = '127.0.0.1'
+user = 'postgres'
+password = '0000'
+db_name = 'bot_users'

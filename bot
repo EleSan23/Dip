@@ -1,5 +1,5 @@
 from random import randrange
-
+import json
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from config import group_token, user_token
@@ -30,10 +30,8 @@ for event in longpoll.listen():
 
 
 class VKBot:
-
     def __init__(self):
-
-        print("Создан объект бота!")
+        print("Приветствую, я бот!")
         self.vk = vk_api.VkApi(token=group_token)  # АВТОРИЗАЦИЯ СООБЩЕСТВА
         self.longpoll = VkLongPoll(self.vk)  # РАБОТА С СООБЩЕНИЯМИ
 
@@ -71,11 +69,11 @@ class VKBot:
         response = repl.json()
         try:
             information_list = response['response']
-            for i in information_list:
-                if i.get('sex') == 2:
+            for response in information_list:
+                if response.get('sex') == 2:
                     find_sex = 1
                     return find_sex
-                elif i.get('sex') == 1:
+                elif response.get('sex') == 1:
                     find_sex = 2
                     return find_sex
         except KeyError:
@@ -83,7 +81,8 @@ class VKBot:
 
     def get_age_low(self, user_id):
         """ПОЛУЧЕНИЕ ВОЗРАСТА ПОЛЬЗОВАТЕЛЯ ИЛИ НИЖНЕЙ ГРАНИЦЫ ДЛЯ ПОИСКА"""
-        url = url = f'https://api.vk.com/method/users.get'
+        global date
+        url = f'https://api.vk.com/method/users.get'
         params = {'access_token': user_token,
                   'user_ids': user_id,
                   'fields': 'date',
@@ -92,8 +91,8 @@ class VKBot:
         response = repl.json()
         try:
             information_list = response['response']
-            for i in information_list:
-                date = i.get('date')
+            for response in information_list:
+                date = response.get('date')
             date_list = date.split('.')
             if len(date_list) == 3:
                 year = int(date_list[2])
@@ -120,8 +119,8 @@ class VKBot:
         response = repl.json()
         try:
             information_list = response['response']
-            for i in information_list:
-                date = i.get('date')
+            for response in information_list:
+                date = response.get('date')
             date_list = date.split('.')
             if len(date_list) == 3:
                 year = int(date_list[2])
@@ -170,16 +169,16 @@ class VKBot:
         response = repl.json()
         try:
             information_dict = response['response']
-            for i in information_dict:
-                if 'city' in i:
-                    city = i.get('city')
+            for response in information_dict:
+                if 'city' in response:
+                    city = response.get('city')
                     id = str(city.get('id'))
                     return id
-                elif 'city' not in i:
+                elif 'city' not in response:
                     self.write_msg(user_id, 'Введите название вашего города: ')
                     for event in self.longpoll.listen():
                         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-                            city_name = event.text
+                            city_name = event.text.lower
                             id_city = self.cities(user_id, city_name)
                             if id_city != '' or id_city != None:
                                 return str(id_city)
@@ -203,15 +202,15 @@ class VKBot:
         resp = requests.get(url, params=params)
         resp_json = resp.json()
         try:
-            dict_1 = resp_json['response']
-            list_1 = dict_1['items']
-            for person_dict in list_1:
+            dict= resp_json['response']
+            list= dict['items']
+            for person_dict in list:
                 if person_dict.get('is_closed') == False:
                     first_name = person_dict.get('first_name')
                     last_name = person_dict.get('last_name')
                     vk_id = str(person_dict.get('id'))
                     vk_link = 'vk.com/id' + str(person_dict.get('id'))
-                    insert_data_users(first_name, last_name, vk_id, vk_link)
+                    insert_data_users(first_name, last_name, vk_link)
                 else:
                     continue
             return f'Поиск завершён'
@@ -231,9 +230,9 @@ class VKBot:
         dict_photos = dict()
         resp_json = resp.json()
         try:
-            dict_1 = resp_json['response']
-            list_1 = dict_1['items']
-            for i in list_1:
+            dict= resp_json['response']
+            list = dict['items']
+            for i in list:
                 photo_id = str(i.get('id'))
                 i_likes = i.get('likes')
                 if i_likes.get('count'):
@@ -244,7 +243,7 @@ class VKBot:
         except KeyError:
             self.write_msg(user_id, 'Ошибка получения токена')
 
-    def get_photo_1(self, user_id):
+    def get_photo(self, user_id):
         """ПОЛУЧЕНИЕ ID ФОТОГРАФИИ № 1"""
         list = self.get_photos_id(user_id)
         count = 0
@@ -253,46 +252,13 @@ class VKBot:
             if count == 1:
                 return i[1]
 
-    def get_photo_2(self, user_id):
-        """ПОЛУЧЕНИЕ ID ФОТОГРАФИИ № 2"""
-        list = self.get_photos_id(user_id)
-        count = 0
-        for i in list:
-            count += 1
-            if count == 2:
-                return i[1]
 
-    def get_photo_3(self, user_id):
-        """ПОЛУЧЕНИЕ ID ФОТОГРАФИИ № 3"""
-        list = self.get_photos_id(user_id)
-        count = 0
-        for i in list:
-            count += 1
-            if count == 3:
-                return i[1]
-
-    def send_photo_1(self, user_id, message, offset):
+    def send_photo(self, user_id, message, offset):
         """ОТПРАВКА ПЕРВОЙ ФОТОГРАФИИ"""
         self.vk.method('messages.send', {'user_id': user_id,
                                          'access_token': user_token,
                                          'message': message,
-                                         'attachment': f'photo{self.person_id(offset)}_{self.get_photo_1(self.person_id(offset))}',
-                                         'random_id': 0})
-
-    def send_photo_2(self, user_id, message, offset):
-        """ОТПРАВКА ВТОРОЙ ФОТОГРАФИИ"""
-        self.vk.method('messages.send', {'user_id': user_id,
-                                         'access_token': user_token,
-                                         'message': message,
-                                         'attachment': f'photo{self.person_id(offset)}_{self.get_photo_2(self.person_id(offset))}',
-                                         'random_id': 0})
-
-    def send_photo_3(self, user_id, message, offset):
-        """ОТПРАВКА ТРЕТЬЕЙ ФОТОГРАФИИ"""
-        self.vk.method('messages.send', {'user_id': user_id,
-                                         'access_token': user_token,
-                                         'message': message,
-                                         'attachment': f'photo{self.person_id(offset)}_{self.get_photo_3(self.person_id(offset))}',
+                                         'attachment': f'photo{self.person_id(offset)}_{self.get_photo(self.person_id(offset))}',
                                          'random_id': 0})
 
     def find_persons(self, user_id, offset):
@@ -300,12 +266,8 @@ class VKBot:
         self.person_id(offset)
         insert_data_seen_users(self.person_id(offset), offset) #offset
         self.get_photos_id(self.person_id(offset))
-        self.send_photo_1(user_id, 'Фото номер 1', offset)
-        if self.get_photo_2(self.person_id(offset)) != None:
-            self.send_photo_2(user_id, 'Фото номер 2', offset)
-            self.send_photo_3(user_id, 'Фото номер 3', offset)
-        else:
-            self.write_msg(user_id, f'Больше фотографий нет')
+        self.send_photo(user_id, 'Фотография', offset)
+        self.write_msg(user_id, f'Больше фотографий нет')
 
     def found_person_info(self, offset):
         """ВЫВОД ИНФОРМАЦИИ О НАЙДЕННОМ ПОЛЬЗОВАТЕЛИ"""
